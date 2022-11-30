@@ -24,15 +24,49 @@ import { Probot } from "probot";
   *   }
   * }
 */
+
+/**
+ * @param {Probot} app
+ * @param  {string} body
+ * @returns string
+ */
+const parseIdentifiers = (app: Probot, body: string) => {
+  const text = body.replace(/[\r\n>]+/g, '')
+
+  const notaryAddressMatch = /#### Multisig Notary address (f0\w+)/gi
+  const clientAddressMatch = /#### Client address (f1\w+)/gi
+  const interplanetaryMatch = /(https:\/\/filplus.d.interplanetary.one\/clients\?filter=t0\w+)/gi
+  const DatasetIssueMatch = /(https:\/\/github.com\/filecoin-project\/filecoin-plus-large-datasets\/issues\/\d+#issuecomment-\d+)_/gi
+
+  const identifiers = {
+    notaryAddress: text.match(notaryAddressMatch)?.at(0)?.split(' ')?.at(-1)?.trim(),
+    clientAddress: text.match(clientAddressMatch)?.at(0)?.split(' ')?.at(-1)?.trim(),
+    interplanetary: text.match(interplanetaryMatch)?.at(0)?.trim(),
+    DatasetIssue: text.match(DatasetIssueMatch)?.at(0)?.trim(),
+  }
+
+  for (const [key, value] of Object.entries(identifiers)) {
+    if (!value) {
+      console.error(`Missing ${key} in ${identifiers}`)
+      app.log.error(`Missing ${key} in ${identifiers}`)
+    }
+  }
+
+  return identifiers;
+}
+
+/**
+ * @param  {Probot} app
+ * @param {import('probot').Context} context
+ */
 export default (app: Probot) => {
   app.on(["issue_comment.created"], async (context) => {
     const { body } = context.payload.comment;
 
-    if (context.payload.action !== 'created') {
-      return;
-    }
+    const regex = /Stats & Info for DataCap Allocation/i
+    if (body.match(regex)) {
+      const { notaryAddress, clientAddress, interplanetary, DatasetIssue } = parseIdentifiers(app, body)
 
-    if (body.includes("## Stats & Info for DataCap Allocation")) {
       const issueComment = context.issue({
         body: "Thanks for opening this issue!",
       });
