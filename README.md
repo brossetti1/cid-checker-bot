@@ -1,6 +1,8 @@
 # cid-checker-bot
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that a probot for hooking sp events into github comments
+This bot listens for `issue_comment.created` and looks for CID checker stats in order to insert a new comment
+
+> A GitHub App built with [Probot](https://github.com/probot/probot) that listens for ``issue_comment` events and responds with relavent SP information.
 
 ## Setup
 
